@@ -1,4 +1,0 @@
-/home/oplin/CProjects/yolov8-openvino/cmake-build-debug/CMakeFiles/detector.dir
-/home/oplin/CProjects/yolov8-openvino/cmake-build-debug/CMakeFiles/detect.dir
-/home/oplin/CProjects/yolov8-openvino/cmake-build-debug/CMakeFiles/edit_cache.dir
-/home/oplin/CProjects/yolov8-openvino/cmake-build-debug/CMakeFiles/rebuild_cache.dir
