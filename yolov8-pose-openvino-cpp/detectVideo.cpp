@@ -4,10 +4,10 @@
 int main(int argc, char* argv[]) {
     try {
 
-        Config config = { 0.75,0.30,0.60,640,640, "/home/oplin/CProjects/yolov8-openvino/model/ep165-bz32-SOAT/weights/best_openvino_model_int8/best.xml"};
+        Config config = { 0.75,0.30,0.60,640,640, "/Users/oplin/CLionProjects/yolov8-inference/yolov8-pose-openvino-cpp/model/SOTA2-highBoxLoss/best_openvino_model_int8/best.xml"};
         YOLOV8 yolomodel(config);
 
-        cv::VideoCapture cap("/home/oplin/CProjects/yolov8-openvino/testSource/2.mp4");
+        cv::VideoCapture cap("/Users/oplin/CLionProjects/yolov8-inference/yolov8-pose-openvino-cpp/testSource/2.mp4");
 
 
         if (!cap.isOpened()) {

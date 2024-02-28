@@ -1,0 +1,4 @@
+/Users/oplin/CLionProjects/yolov8-inference/yolov8-pose-openvino-cpp/cmake-build-debug/CMakeFiles/detector.dir
+/Users/oplin/CLionProjects/yolov8-inference/yolov8-pose-openvino-cpp/cmake-build-debug/CMakeFiles/detect.dir
+/Users/oplin/CLionProjects/yolov8-inference/yolov8-pose-openvino-cpp/cmake-build-debug/CMakeFiles/edit_cache.dir
+/Users/oplin/CLionProjects/yolov8-inference/yolov8-pose-openvino-cpp/cmake-build-debug/CMakeFiles/rebuild_cache.dir

@@ -28,7 +28,7 @@ target_include_directories(detector
 )
 target_link_libraries(detector
       ${OpenCV_LIBS}
-      /opt/intel/openvino2023.3/runtime/lib/intel64/libopenvino.so
+        /opt/intel/openvino2023.3/runtime/lib/arm64/Release/libopenvino.dylib
     )
 
 add_executable(${PROJECT_NAME} ${SRC})

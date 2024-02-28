@@ -82,8 +82,7 @@ void YOLOV8::initialmodel() {
     ppp.input().model().set_layout("NCHW");
     ppp.output().tensor().set_element_type(ov::element::f32); //TODO change to 16
     model = ppp.build();
-//    this->compiled_model = core.compile_model(model, "GPU", ov::hint::performance_mode (ov::hint::PerformanceMode::LATENCY)); //TODO: change cpu to gpu or MYBRID
-    this->compiled_model = core.compile_model(model, "CPU",ov::hint::performance_mode (ov::hint::PerformanceMode::LATENCY), ov::hint::inference_precision(ov::element::f16));
+    this->compiled_model = core.compile_model(model, "AUTO",ov::hint::performance_mode (ov::hint::PerformanceMode::LATENCY), ov::hint::inference_precision(ov::element::f16)); //, ov::hint::num_requests(8))
     this->infer_request = compiled_model.create_infer_request();
 
 }

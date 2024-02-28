@@ -1,0 +1,69 @@
+{
+	"configurations" : 
+	[
+		{
+			"directories" : 
+			[
+				{
+					"build" : ".",
+					"jsonFile" : "directory-.-Debug-f5ebdc15457944623624.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.12"
+					},
+					"projectIndex" : 0,
+					"source" : ".",
+					"targetIndexes" : 
+					[
+						0,
+						1
+					]
+				}
+			],
+			"name" : "Debug",
+			"projects" : 
+			[
+				{
+					"directoryIndexes" : 
+					[
+						0
+					],
+					"name" : "NeuralArmorDetector",
+					"targetIndexes" : 
+					[
+						0,
+						1
+					]
+				}
+			],
+			"targets" : 
+			[
+				{
+					"directoryIndex" : 0,
+					"id" : "NeuralArmorDetector::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-NeuralArmorDetector-Debug-2ddac3c772e1f81f0e7a.json",
+					"name" : "NeuralArmorDetector",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "detector::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-detector-Debug-810465cea76d3411cdf3.json",
+					"name" : "detector",
+					"projectIndex" : 0
+				}
+			]
+		}
+	],
+	"kind" : "codemodel",
+	"paths" : 
+	{
+		"build" : "/Users/oplin/CLionProjects/yolov8-inference/yolov8-pose-openvino-cpp-rm/cmake-build-debug",
+		"source" : "/Users/oplin/CLionProjects/yolov8-inference/yolov8-pose-openvino-cpp-rm"
+	},
+	"version" : 
+	{
+		"major" : 2,
+		"minor" : 6
+	}
+}

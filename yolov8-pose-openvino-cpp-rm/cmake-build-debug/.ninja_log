@@ -1,0 +1,13 @@
+# ninja log v5
+0	82	1709102391460994056	build.ninja	f61a3e8ef5442a2e
+0	1328	1709020221172425140	CMakeFiles/detector.dir/src/yolov8.cpp.o	aac1f422253bd103
+0	1338	1709020221182652220	CMakeFiles/NeuralArmorDetector.dir/src/yolov8.cpp.o	358fad9fc56e0a92
+6	1564	1709021503013764237	CMakeFiles/NeuralArmorDetector.dir/src/detectVideo.cpp.o	903e4b16d2116310
+1328	1369	1709020221219044238	libdetector.dylib	78b686c9bceb7ec0
+1564	1672	1709021503123885775	NeuralArmorDetector	fbf5803511a2e41
+6	174	1709021501626067308	CMakeFiles/NeuralArmorDetector.dir/src/Neural_Armor_Detection.cpp.o	33a511c6ca66544f
+1	1672	1709102401979803159	CMakeFiles/NeuralArmorDetector.dir/src/mainTest.cpp.o	2637db8c7c907cd9
+0	1890	1709102402191037741	CMakeFiles/detector.dir/src/Neural_Armor_Detection.cpp.o	6a6002f8a8be5dea
+1	1891	1709102402191390321	CMakeFiles/NeuralArmorDetector.dir/src/Neural_Armor_Detection.cpp.o	bfe6a13e8ec4e5a6
+1890	2051	1709102402364580832	libdetector.dylib	58a4685171a5956e
+2051	2087	1709102402401969493	NeuralArmorDetector	b345ba51cff71085
