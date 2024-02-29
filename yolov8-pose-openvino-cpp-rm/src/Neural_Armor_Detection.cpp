@@ -3,14 +3,15 @@
 #include <string>
 #include <ctime>
 #include <chrono>
+#define POINT_DIST(p1,p2) std::sqrt((p1.x-p2.x)*(p1.x-p2.x)+(p1.y-p2.y)*(p1.y-p2.y)) // 计算两点距离(勾股定理)
 
 using namespace cv;
 using namespace std;
 using namespace dnn;
 
 const vector<string> coconame = {
-        "BG", "B1", "B2", "B3", "B4", "B5", "BO", "BBs", "BBb",
-        "RG", "R1", "R2", "R3", "R4", "R5", "RO", "RBs", "RBb",
+        "BG", "B1", "B2", "B3", "B4", "B5", "BO", "BBs", "BBb", // 1 2 3 4 5 6->0
+        "RG", "R1", "R2", "R3", "R4", "R5", "RO", "RBs", "RBb", // 10 11 12 所以 - 9
         "NG", "N1", "N2", "N3", "N4", "N5", "NO", "NBs", "NBb",
         "PG", "P1", "P2", "P3", "P4", "P5", "PO", "PBs", "PBb"
 };
@@ -63,6 +64,8 @@ void NeuralArmorDetector::detect(Mat & frame) {
     const ov::Tensor& output_tensor = infer_request.get_output_tensor();
     ov::Shape output_shape = output_tensor.get_shape();
     float* detections = output_tensor.data<float>();
+    this->frame_w = frame.cols;
+    this->frame_h = frame.rows;
     this->postprocess_img(frame, detections, output_shape);
 }
 
@@ -229,7 +232,9 @@ void NeuralArmorDetector::postprocess_img(cv::Mat &frame, float *detections, ov:
         // 从检测结果中提取最大的类别分数和对应的类别ID
         float max_score = 0.0;
         int class_id = -1;
-        for (int j = 0; j < 36; ++j) { // 这里36指遍历36个类别的置信度,如果只要BLUE和RED的置信度,可以将其改为18, 直接拦腰截断了一半
+        for (int j = 0; j < 36; ++j) {
+            // 这里36指遍历36个类别的置信度,如果只要BLUE和RED的置信度,可以将其改为18, 直接拦腰截断了一半,
+            // 这里可以根据敌方的眼神开选择j的赋值和区间, 来提高推理速度和容错率, 比赛上不同方的机器人和前哨站,基地,颜色都是不一样的.
             float score = detections[i + (4 + j) * num_detections];
             if (score > max_score) {
                 max_score = score;
@@ -274,20 +279,77 @@ void NeuralArmorDetector::postprocess_img(cv::Mat &frame, float *detections, ov:
         result.confidence = confidences[idx];
         result.box = boxes[idx];
         result.keyPoint = keyPointS[idx];
-        output.push_back(result);
+        output.emplace_back(result);
     }
-    // 使用Armor结构体
-//        std::vector<Armor> ArmorList;
-//    for (int idx : nms_result) {
-//        Armor result;
-//        result.class_id = class_ids[idx];
-//        result.confidence = confidences[idx];
-//        result.box = boxes[idx];
-//        result.keyPoint = keyPointS[idx];
-//        output.push_back(result);
+//    cout << "frame.col: " << this->frame_w << "  frame.row: " << this->frame_h << endl;
+//    drawDetections(frame, output);
+//    std::vector<Armor> finalArmors = neuralArmorGrade(output);
+//    for (auto armor : finalArmors) {
+//        cout << "id: " << armor.id << endl
+//        << "grade" << armor.grade << endl
+//        << "confi" << armor.confidence << endl;
 //    }
-    drawDetections(frame, output);
+    drawArmors(frame ,neuralArmorGrade(output));
 }
+
+std::vector<Armor> NeuralArmorDetector::neuralArmorGrade(const std::vector<Detection>& candidateArmors) {
+    std::vector<Armor> finalArmors;
+    for (const auto &candidateArmor: candidateArmors) {
+        Armor armor;
+        //TODO 计算装甲板宽度,并赋值大小装甲板 要注意测试,能否正确检测大装甲板, 如果不行就求两个的最小值
+        double armorWidth = (POINT_DIST(candidateArmor.keyPoint[2], candidateArmor.keyPoint[3]) + POINT_DIST(candidateArmor.keyPoint[1], candidateArmor.keyPoint[4])) / 2;
+        double armorHeight = (POINT_DIST(candidateArmor.keyPoint[2], candidateArmor.keyPoint[1]) + POINT_DIST(candidateArmor.keyPoint[4], candidateArmor.keyPoint[3])) / 2;
+        // 宽高比筛选条件
+//        cout << "box w:" << static_cast<int>(candidateArmor.box.width * this->rx) << "  box h:" << static_cast<int>(candidateArmor.box.height * this->ry) << endl;
+//        cout << "armor w:" << armorWidth << "  armow h:" << armorHeight << endl;
+        bool small_wh_ratio_ok = armor_small_min_wh_ratio < armorWidth/armorHeight && armorWidth/armorHeight < armor_small_max_wh_ratio;
+//        bool big_wh_ratio_ok = armor_big_min_wh_ratio < armorWidth/armorHeight && armorWidth/armorHeight < armor_big_max_wh_ratio;
+//        cout << "snallOK:" << small_wh_ratio_ok << "  bigOK:" << big_wh_ratio_ok << endl;
+
+
+        // 图像中心、打分
+        int near_grade;
+        double pts_distance = POINT_DIST(candidateArmor.keyPoint[0], Point2f(this->frame_w * 0.5, this->frame_h * 0.5));
+        near_grade = pts_distance/near_standard < 1 ? 100 : (near_standard/pts_distance) * 100;
+
+        //TODO id 打分, 后面如果根据颜色来nms, 这里应该改进一下
+        int id_grade = ((candidateArmor.class_id == 1) || (candidateArmor.class_id == 10)) ? 100 : 80;
+
+        // 最大装甲板，用面积，找一个标准值（固定距离（比如3/4米），装甲板大小（Armor.area）大约是多少，分大小装甲板）
+        // 这段代码的作用是给最大装甲板打分，根据装甲板的高度与预设的标准高度之间的比值来计算分数。
+        // 如果装甲板是唯一的候选装甲板，那么分数将为100。否则，分数将根据比值乘以一个权重来计算，可能得出的值会很小。
+        int height_grade;
+        double hRotation = armorHeight / height_standard;
+        if(candidateArmors.size()==1)  hRotation=1;
+        height_grade = hRotation * 60;
+
+        // 下面的系数得详细调节；
+        int final_grade = id_grade * id_grade_ratio +
+                          height_grade  * height_grade_ratio +
+                          near_grade  * near_grade_ratio;
+
+        if (final_grade > grade_standard)
+        {
+            armor.armor_pt4[0] = candidateArmor.keyPoint[2]; // 左下
+            armor.armor_pt4[1] = candidateArmor.keyPoint[3]; // 右下
+            armor.armor_pt4[2] = candidateArmor.keyPoint[4]; // 右上
+            armor.armor_pt4[3] = candidateArmor.keyPoint[1]; // 左上
+            if(small_wh_ratio_ok) armor.type = SMALL;
+            else armor.type = BIG;
+            if (candidateArmor.class_id < 18) {
+                // only use RED and BLUE
+                armor.id = candidateArmor.class_id;
+                if (armor.id > 8) armor.id -= 9;
+                if (armor.id == 6) armor.id = 9; // index 6 is armor class B0
+            }
+            armor.grade = final_grade;
+            armor.confidence = candidateArmor.confidence;
+            finalArmors.emplace_back(armor);
+        }
+    }
+    return finalArmors;
+}
+
 
 
 
@@ -335,6 +397,35 @@ void NeuralArmorDetector::drawDetections(cv::Mat &frame, const std::vector<Detec
             cv::circle(frame, cv::Point(int(kpt.x), int(kpt.y)), 3, cv::Scalar(0, 0, 255), -1);
         }
 
+    }
+}
+
+void NeuralArmorDetector::drawArmors(cv::Mat &frame, const std::vector<Armor> &armors) {
+    for (const auto &armor : armors) {
+        // 绘制装甲板的四边形轮廓
+        for (int i = 0; i < 4; i++) {
+            cv::line(frame, armor.armor_pt4[i], armor.armor_pt4[(i + 1) % 4], cv::Scalar(0, 255, 0), 2);
+        }
+
+        // 突出显示四个角点
+        for (const auto &point : armor.armor_pt4) {
+            cv::circle(frame, point, 3, cv::Scalar(0, 0, 255), -1);
+        }
+
+        // 文本基础位置（基于第一个点）
+        cv::Point textBasePos = armor.armor_pt4[0] + cv::Point2f(15, -1);
+
+        // 显示 ID
+        std::string idText = "ID: " + std::to_string(armor.id);
+        cv::putText(frame, idText, textBasePos, cv::FONT_HERSHEY_SIMPLEX, 0.7, cv::Scalar(255, 255, 0), 1);
+
+        // 计算第二行文本的位置（基于第一行文本的位置稍微向下偏移）
+        int textHeight = 15; // 假设文本高度大约为 15 像素
+        cv::Point secondLinePos = textBasePos + cv::Point(5, textHeight);
+
+        // 显示 Grade 和 Conf
+        std::string gcText = "Grade: " + std::to_string(armor.grade) + " Conf: " + std::to_string(armor.confidence);
+        cv::putText(frame, gcText, secondLinePos, cv::FONT_HERSHEY_SIMPLEX, 0.6, cv::Scalar(0, 255, 0), 1);
     }
 }
 
